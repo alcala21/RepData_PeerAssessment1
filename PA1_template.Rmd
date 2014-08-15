@@ -1,20 +1,117 @@
-# Reproducible Research: Peer Assessment 1
+# Reproducible Research: Peer Assessment 1  
 
 
 ## Loading and preprocessing the data
+Assuming that the data and scripts are already in the working directory, the following code will unzip the activity data and load it.
 
+```{r}
+unzip('activity.zip')
+data <- read.csv('activity.csv', stringsAsFactors = FALSE)
+```
 
+We also need to load the libraries that we'll need to manipulate the data and build the plots.
+
+```{r, results = 'hide'}
+require(plyr)
+require(ggplot2)
+```
 
 ## What is mean total number of steps taken per day?
 
+Make a histogram of the total number of steps taken each day
 
+```{r histogram}
+# Histogram of number of steps taken each day
+dailyData <- ddply(data, 'date', summarise, totalSteps = sum(steps, na.rm = TRUE))
+hist(dailyData$totalSteps)
+```
+
+Calculate and report the **mean** and **median** total number of steps taken per day.
+
+```{r meanMedian}
+# Mean steps taken each day
+mean(dailyData$totalSteps)
+
+# Median steps taken each day
+median(dailyData$totalSteps)
+```
 
 ## What is the average daily activity pattern?
 
+Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r averageDays}
+# Average steps taken across all days
+averageData <- ddply(data, 'interval', summarise, average = mean(steps, na.rm = TRUE))
+qplot(interval, average, data = averageData, geom = 'line')
+```  
+
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r maxInterval}
+# Interval with maximum number of steps
+with(averageData, interval[which.max(average)])
+```
 
 
 ## Imputing missing values
 
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
+
+```{r missingValues}
+# Total number of rows with NAs
+a <- which(complete.cases(data) == FALSE)
+length(a)
+```
+
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+```{r fillIntervals}
+# Intervals with missing values
+missingIntervals <- data$interval[a]
+
+# Average values for missing intervals
+missingAverage <- with(averageData, average[match(missingIntervals,interval)])
+```
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+```{r filledData}
+# Fill NAs with average data
+filledData <- data
+filledData$steps[a] <- missingAverage
+```
+
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```{r filledHistogram}
+# Histogram of number of steps taken each day
+newDailyData <- ddply(filledData, 'date', summarise, totalSteps = sum(steps, na.rm = TRUE))
+hist(newDailyData$totalSteps)
+
+# Mean steps taken each day
+mean(newDailyData$totalSteps)
+
+# Median steps taken each day
+median(newDailyData$totalSteps)
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+```{r weekdays}
+## Create the column 'day' to indicate whether a date is a 'weekday' or part of the 'weekend'
+day <- weekdays(as.Date(filledData$date))
+isWeekend <- day %in% c('Saturday', 'Sunday')
+filledData$day <- ifelse(isWeekend, 'weekend', 'weekday')
+```
+
+Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+```{r weekdayPlot}
+# Plot filled average data
+filledAverageData <- ddply(filledData, c('interval', 'day'), summarise, average = mean(steps, na.rm = TRUE))
+qplot(interval, average, data = filledAverageData, geom = 'line') + facet_wrap(~ day, ncol = 1)
+```

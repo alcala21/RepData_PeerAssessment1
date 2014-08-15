@@ -193,4 +193,4 @@ facet_wrap(~ day, ncol = 1)
 
 There's more activity between 5AM and 9:30AM in the weekdays than in the weekend. However, after 10AM, there's less activity in a weekday than in the weekend.  
 
-This can be explained because, during the week, people wake up early to get ready for work, then they have to go to work. This happens in the window of 5AM to 9:30AM. However, once at work, there's not much activity. On the other hand, during the weekend most people don't wake up early, and don' have to get to work; however, once they're up, they are pretty active during the day.
+This can be explained because, during the week, people wake up early to get ready for work, then they have to go to work. This happens in the window of 5AM to 9:30AM. However, once at work, there's not much activity. On the other hand, during the weekend most people don't wake up early, and don't have to get to work; however, once they're up, they are pretty active during the day.
